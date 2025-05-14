@@ -25,8 +25,8 @@ const StudyTable = () => {
   useEffect(() => {
     fetchStudies()
       .then((data) => {
-        console.log('Fetched Studies data:', data);
-
+        console.log('Raw study data:', data);
+  
         const parsed = Array.isArray(data)
           ? data
           : Array.isArray(data?.studies)
@@ -34,7 +34,11 @@ const StudyTable = () => {
           : Array.isArray(data?.data)
           ? data.data
           : [];
-
+  
+        if (parsed.length > 0) {
+          console.log('First study object:', parsed[0]); // 👈 add this
+        }
+  
         setStudies(parsed);
       })
       .catch((err) => {
@@ -43,6 +47,7 @@ const StudyTable = () => {
       })
       .finally(() => setLoading(false));
   }, []);
+  
 
   const totalPages = Math.ceil(studies.length / ITEMS_PER_PAGE);
   const paginatedStudies = studies.slice(
@@ -70,12 +75,12 @@ const StudyTable = () => {
             <table className="min-w-full">
               <thead>
                 <tr className="bg-gray-100 text-xs uppercase text-gray-500 tracking-wider">
-                  <th className="p-4 font-semibold">Study Name</th>
-                  <th className="p-4 font-semibold">Start Date</th>
-                  <th className="p-4 font-semibold">End Date</th>
-                  <th className="p-4 font-semibold">Status</th>
-                  <th className="p-4 font-semibold">Tags</th>
-                  <th className="p-4 font-semibold">Participants</th>
+                  <th className="p-4 font-semibold text-left">Study Name</th>
+                  <th className="p-4 font-semibold text-left">Start Date</th>
+                  <th className="p-4 font-semibold text-left">End Date</th>
+                  <th className="p-4 font-semibold text-left">Status</th>
+                  <th className="p-4 font-semibold text-left">Tags</th>
+                  <th className="p-4 font-semibold text-left">Participants</th>
                 </tr>
               </thead>
               <tbody>
@@ -86,24 +91,28 @@ const StudyTable = () => {
                     </td>
                   </tr>
                 ) : (
-                  paginatedStudies.map((study) => (
+                  paginatedStudies.map((study, index) => (
                     <tr
-                      key={study.id}
+                      key={study.id || index}
                       className="border-t border-gray-100 hover:bg-gray-50 transition-all duration-150 hover:shadow-sm"
                     >
-                      <td className="p-4 font-medium text-gray-900">{study.name}</td>
-                      <td className="p-4 text-gray-700">{study.startDate || study.start}</td>
-                      <td className="p-4 text-gray-700">{study.endDate || study.end}</td>
+                      <td className="p-4 font-medium text-gray-900">{study.study_name}</td>
+                      <td className="p-4 text-gray-700">{study.start_date || '-'}</td>
+                      <td className="p-4 text-gray-700">{study.end_date || '-'}</td>
                       <td className="p-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(study.status)}`}>
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
+                            study.status
+                          )}`}
+                        >
                           {study.status}
                         </span>
                       </td>
                       <td className="p-4">
                         <div className="flex flex-wrap gap-1">
-                          {(study.tags || []).map((tag, i) => (
+                          {(study.tags || []).map((tag, tagIdx) => (
                             <span
-                              key={i}
+                              key={`tag-${study.id || index}-${tagIdx}`}
                               className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full font-medium"
                             >
                               {tag}
@@ -111,7 +120,7 @@ const StudyTable = () => {
                           ))}
                         </div>
                       </td>
-                      <td className="p-4 font-semibold text-gray-800">{study.participants}</td>
+                      <td className="p-4 font-semibold text-gray-800">{study.participants || 0}</td>
                     </tr>
                   ))
                 )}
