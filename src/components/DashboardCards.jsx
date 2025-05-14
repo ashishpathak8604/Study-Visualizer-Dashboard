@@ -1,33 +1,58 @@
 import React from 'react';
 
-const cards = [
-  {
-    title: 'Total Studies',
-    value: '324',
-    growth: '+12%',
-    chartColor: 'bg-blue-100',
-  },
-  {
-    title: 'Active Studies',
-    value: '156',
-    growth: '+12%',
-    chartColor: 'bg-green-100',
-  },
-  {
-    title: 'Clinical Trials',
-    value: 'Used in 45 studies',
-    subtitle: 'Most Used Tag',
-    icon: '🏷️',
-  },
-  {
-    title: 'Last Updated',
-    value: '2 hours ago',
-    subtitle: 'By John Doe',
-    icon: '⏰',
-  },
-];
+const DashboardCards = ({ studies = [] }) => {
+  // Total studies
+  const totalStudies = studies.length;
 
-const DashboardCards = () => {
+  // Active studies (status: active or ongoing)
+  const activeStudies = studies.filter(
+    (s) => s.status?.toLowerCase() === 'active' || s.status?.toLowerCase() === 'ongoing'
+  ).length;
+
+  // Most used tag
+  const tagFrequency = {};
+  studies.forEach((study) => {
+    (study.tags || []).forEach((tag) => {
+      tagFrequency[tag] = (tagFrequency[tag] || 0) + 1;
+    });
+  });
+  const mostUsedTag = Object.entries(tagFrequency).sort((a, b) => b[1] - a[1])[0];
+
+  // Last updated study
+  const sorted = [...studies].sort(
+    (a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at)
+  );
+  const lastUpdated = sorted[0];
+
+  const cards = [
+    {
+      title: 'Total Studies',
+      value: totalStudies,
+      growth: '+12%',
+      chartColor: 'bg-blue-100',
+    },
+    {
+      title: 'Active Studies',
+      value: activeStudies,
+      growth: '+12%',
+      chartColor: 'bg-green-100',
+    },
+    {
+      title: 'Most Used Tag',
+      value: mostUsedTag ? `Used in ${mostUsedTag[1]} studies` : '—',
+      subtitle: mostUsedTag ? mostUsedTag[0] : '—',
+      icon: '🏷️',
+    },
+    {
+      title: 'Last Updated',
+      value: lastUpdated
+        ? new Date(lastUpdated.updated_at || lastUpdated.created_at).toLocaleString()
+        : '—',
+      subtitle: lastUpdated?.created_by || '—',
+      icon: '⏰',
+    },
+  ];
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
       {cards.map((card, index) => (
@@ -51,15 +76,10 @@ const DashboardCards = () => {
                 <div className="text-xs text-gray-400 mt-1">{card.subtitle}</div>
               )}
             </div>
-            {/* Chart/Growth badge */}
             {(card.growth || card.chartColor) && (
               <div className={`ml-2 flex items-center ${card.chartColor} rounded-lg px-2 py-1`}>
                 {card.growth && (
                   <span className="text-xs font-semibold text-green-600">{card.growth}</span>
-                )}
-                {/* Placeholder for chart */}
-                {!card.growth && (
-                  <div className="w-10 h-4 bg-gray-200 rounded"></div>
                 )}
               </div>
             )}
